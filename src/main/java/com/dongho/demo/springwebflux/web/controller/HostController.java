@@ -3,6 +3,7 @@ package com.dongho.demo.springwebflux.web.controller;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -26,7 +27,8 @@ public class HostController {
     }
 
     @GetMapping("/host-info")
-    public Mono<String> getHostInfo() {
+    public Mono<String> getHostInfo(ServerHttpRequest request) {
+        log.info("path: {}, queryParams: {}, headers: {}", request.getPath(), request.getQueryParams(), request.getHeaders());
          return Mono.defer(() -> Mono.just(String.format("%s:%s", hostname, serverPort)))
             .doOnNext(s -> log.info("{}", s));
     }
