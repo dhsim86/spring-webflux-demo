@@ -4,3 +4,19 @@ server:
 spring:
   application:
     name: spring-webflux-demo
+
+management:
+  server:
+    port: 8080
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    defaults:
+      enabled: false
