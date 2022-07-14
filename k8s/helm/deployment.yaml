@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: spring-webflux-demo-container
-          image: spring-webflux-demo:0.5
+          image: spring-webflux-demo:0.6
           imagePullPolicy: Never # local registry 사용
           ports:
             - containerPort: 80 # 서버 프로그램에 접속하기 위한 포트 번호
