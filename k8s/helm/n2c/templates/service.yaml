@@ -1,0 +1,20 @@
+{{- $nccLabels := include "ncc.labels" . -}}
+{{- $nccSelectors := include "ncc.selectors" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ .Values.ncc.instance }}-{{ .Values.ncc.installation }}'
+  labels:
+    {{- $nccLabels | nindent 4 }}
+    ncc.navercorp.com/instance-service: '{{ .Values.ncc.instance }}'
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    protocol: TCP
+    name: http
+  - port: 8080
+    protocol: TCP
+    name: actuator
+  selector:
+    {{- $nccSelectors | nindent 4 }}

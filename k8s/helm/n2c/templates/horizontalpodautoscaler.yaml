@@ -1,0 +1,29 @@
+{{- $nccLabels := include "ncc.labels" . -}}
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: '{{ .Values.ncc.instance }}-{{ .Values.ncc.installation }}-hpa'
+  labels:
+    {{- $nccLabels | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: '{{ .Values.ncc.instance }}-{{ .Values.ncc.installation }}'
+  minReplicas: {{ .Values.replicas.min }}
+  maxReplicas: {{ .Values.replicas.max }}
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: cpu_usage
+      target:
+        type: AverageValue
+        averageValue: 2000m
+  - type: Pods
+    pods:
+      metric:
+        name: network_receive_packets
+      target:
+        type: AverageValue
+        averageValue: 25000

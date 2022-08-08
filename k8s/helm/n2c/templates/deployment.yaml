@@ -1,0 +1,68 @@
+{{- $nccLabels := include "ncc.labels" . -}}
+{{- $nccSelectors := include "ncc.selectors" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Values.ncc.instance }}-{{ .Values.ncc.installation }}'
+  labels:
+    {{- $nccLabels | nindent 4 }}  
+spec:
+  replicas: {{ .Values.replicas.min }}
+  selector:
+    matchLabels:
+      {{- $nccSelectors | nindent 6 }}  
+  template:
+    metadata:
+      labels:
+        {{- $nccLabels | nindent 8 }}
+      annotations:
+        ncc.navercorp.com/l4-weights: '{{ .Values.ncc.installation }}'
+    spec:
+      hostAliases:
+        {{- range .Values.hosts }}
+          - {{ . | toJson }}
+        {{- end }}
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: '{{ .Values.ncc.instance }}-{{ .Values.ncc.installation }}'
+          image: 'reg.navercorp.com/news/{{ .Values.ncc.application }}:{{ required ".Values.image.tag must be set" .Values.image.tag }}'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: actuator
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 4.0
+              memory: 8Gi
+              ephemeral-storage: 8Gi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 5
+          volumeMounts:
+            - name: boot-volume
+              mountPath: /home1/irteam/logs/boot
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - kill -15 $(jps | grep target.jar | awk '{print $1}'); sleep 15
+      volumes:
+        - name: boot-volume
+          emptyDir: {}

@@ -1,0 +1,21 @@
+profile: dev
+
+image:
+  tag: latest
+
+ncc:
+  labels: dev
+  instance: webflux-demo
+  installation: webflux-demo
+
+pinpoint:
+  applicationName: webflux-demo
+  sampling_rate: 1
+  profile: dev
+
+replicas:
+  min: 5
+  max: 10
+
+hpa:
+  messenger: false
