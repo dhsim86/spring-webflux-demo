@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1.2
+# Stage 1
+FROM reg.navercorp.com/base/centos7/jdk17/maven:3.6.3 AS builder
+WORKDIR /home1/irteam/demo
+COPY pom.xml ./
+# uid=500(irteam), gid=500(irteam)
+RUN --mount=type=cache,target=/home1/irteam/.m2,id=spring-webflux-demo,uid=500,gid=500 \
+    mvn -Dmaven.repo.local=/home1/irteam/.m2/repository dependency:go-offline
+COPY src ./src
+RUN --mount=type=cache,target=/home1/irteam/.m2,id=spring-webflux-demo,uid=500,gid=500 \
+    mvn -Dmaven.repo.local=/home1/irteam/.m2/repository package
+
+# Stage 2
+ENV BINARY_NAME="spring-webflux-demo"
+
+FROM reg.navercorp.com/base/centos7/jdk:17.0.6.x64
+WORKDIR /home1/irteam
+# pom.xml: ${project.build.directory}/output
+COPY --from=builder /home1/irteam/demo/target/${BINARY_NAME}-*.jar ./app.jar
+CMD ["java", "-jar", "./app.jar"]
+
+EXPOSE 80
